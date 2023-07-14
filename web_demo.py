@@ -11,17 +11,26 @@ st.title("Baichuan-13B-Chat")
 
 @st.cache_resource
 def init_model():
-    model = AutoModelForCausalLM.from_pretrained(
-        "baichuan-inc/Baichuan-13B-Chat",
-        torch_dtype=torch.float16,
-        device_map="auto",
-        trust_remote_code=True
-    )
+    # bf16 / fp16,需要显存26.0G
+    #model = AutoModelForCausalLM.from_pretrained(
+        #"baichuan-inc\Baichuan-13B-Chat",
+        #torch_dtype=torch.float16,
+        #device_map="auto",
+        #trust_remote_code=True
+    #)
+    
+    #使用 int8 量化：15.8G 时间很长
+    model = AutoModelForCausalLM.from_pretrained("baichuan-inc\Baichuan-13B-Chat", torch_dtype=torch.float16, trust_remote_code=True)   
+    model = model.quantize(8).cuda() 
+    
+    #使用 int4 量化：9.7G
+    #model = model.quantize(4).cuda()
+    
     model.generation_config = GenerationConfig.from_pretrained(
-        "baichuan-inc/Baichuan-13B-Chat"
+        "baichuan-inc\Baichuan-13B-Chat"
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        "baichuan-inc/Baichuan-13B-Chat",
+        "baichuan-inc\Baichuan-13B-Chat",
         use_fast=False,
         trust_remote_code=True
     )
